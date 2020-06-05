@@ -1,0 +1,90 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<title>Carrinho v2</title>
+
+		<!--CSS do Controle do Carrinho-->
+		<style>
+		body {
+			overflow: hidden;
+			padding: 0;
+			margin: 0;
+			background-color: #BBB;
+		}
+		#info {
+			position: absolute;
+			top	: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align: center;
+		}
+		#info a {
+			color: #66F;
+			text-decoration: none;
+		}
+		#info a:hover {
+			text-decoration: underline;
+		}
+		#container {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			padding: 0;
+			margin: 0;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="container"></div>
+		<div id="info">
+			Touch the screen and move. Works with mouse too as debug...
+		</div> 
+		<script src="/code.min.js"></script>
+		<script>
+			var xhttp = new XMLHttpRequest();
+			var url = "http://192.168.4.1/jsdata";
+			//Função para finalizar interação com o controle
+			var end = function(){
+				xhttp.open("POST", url);
+			    xhttp.send(JSON.stringify({
+				    direction: "none",
+				    distance: 0,
+				    state: "end"
+			    }));
+			}
+			//Função para mover o controle
+			var move = function(dist, angle) {
+ 				xhttp.open("POST", url);
+      			xhttp.send(JSON.stringify({
+        			direction: angle,
+        			distance: Math.round(dist),
+        			state: "move"
+      			}));
+			}
+			//função para novo joystick
+			var joystick = new VirtualJoystick({
+				container: document.getElementById('container'),
+				mouseSupport: true,
+				limitStickTravel: true
+			});
+
+			joystick.addEventListener('touchEnd', function(){
+				end();
+			})
+			//Função para entender ângulo que o carrinho ira
+			setInterval(function(){
+				var a = 0 - joystick.deltaX();
+				var b = 0 - joystick.deltaY();
+				var distance = Math.sqrt(a * a + b * b);
+				if(joystick.up()) move(distance, "up");
+				else if(joystick.down()) move(distance, "down");
+				else if(joystick.right()) move(distance, "right");
+				else if(joystick.left()) move(distance, "left");
+				else end();
+			}, 500);
+		</script>
+	</body>
+</html>
